@@ -41,15 +41,6 @@ unordered_map<int, vector<pair<double, double>>>/*n, x, c*/ LEGENDRE_POLYNOMIALS
                 {-0.238619186083197, 0.467913934572691},
                 {-0.661209386466265, 0.360761573048139},
                 {-0.932469514203152, 0.171324492379170}
-            }},
-        {7, {
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
             }}
 };
 #pragma region old version
@@ -81,11 +72,11 @@ double Function__1_TO_1(double x, double dx, double xi) {
     return result;
 }
 
-double GaussMethod(int NumOfTerms, int n) {
+double GaussMethod(int NumOfTerms, int NumOfCuts) {
     double result = 0.0;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < NumOfCuts; i++) {
         for (const auto& term : LEGENDRE_POLYNOMIALS_TABLE[NumOfTerms]) {
-            result += term.second * Function__1_TO_1(term.first, 1.0 / n, static_cast<double>(i) / n);
+            result += term.second * Function__1_TO_1(term.first, 1.0 / NumOfCuts, static_cast<double>(i) / NumOfCuts);
         }
     }
     return result;
@@ -106,7 +97,7 @@ void Output(int numOdDig, int polynomialOrder, int numOfFunc) {
     cout << endl;
     for (int i = 1; i < polynomialOrder; i++) {
         std::cout << std::setw(15) << i << "| ";
-        for (int j = 10; j < numOfFunc; j = j * 10) {
+        for (int j = 1; j < numOfFunc - 1; j = j * 10) {
             std::cout << std::setw(15) << GaussMethod(i, j) << " ";
         }
         std::cout << std::endl;
@@ -132,16 +123,19 @@ vector<vector<double>> RombergIntegration(int numOfSteps, const vector<double>* 
     vector<vector<double>> R(numOfSteps, vector<double>(numOfSteps, 0.0));
     double a = Xs->front(), b = Xs->back(), h = abs(b - a);
     int numOfTerms = 1;
+    int ppp = 0;
 
     for (int n = 0; n < numOfSteps; n++) {
         for (int i = 0; i < numOfTerms; i++) {
             double tempA = a + i * h;
             R[n][0] += h * Function_0_TO_1((tempA + tempA + h) / 2);
+            ++ppp;
         }
 
         for (int m = 1; m <= n; m++) {
             double factor = pow(4, m);
             R[n][m] = (factor * R[n][m - 1] - R[n - 1][m - 1]) / (factor - 1);
+            ++ppp;
         }
 
         h /= 2.0;
@@ -163,7 +157,7 @@ vector<vector<double>> RombergIntegration(int numOfSteps, const vector<double>* 
 int main()
 {
     // User's variables
-    const int numOfSteps = 10;
+    const int numOfSteps = 15;
     const double start = 0, finish = 1;
     //
 
@@ -178,9 +172,9 @@ int main()
         Xs.push_back(start + delta * i);
     }
     ResultMatrix = RombergIntegration(numOfSteps, &Xs);
-    cout << ResultMatrix.back().back() << endl;
+    Output(7, 7, pow(10, 6));
+    cout << endl << ResultMatrix.back().back() << endl;
 
 
-    Output(7, 7, pow(10, 7));
 
 }
